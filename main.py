@@ -1,144 +1,147 @@
 from prettytable import PrettyTable
 import csv
 
-# function to add a student to the list
-def addStudent(lst: list):
-    while True:
-        name1 = input("Enter the student's first name: ")
-        name2 = input("Enter the student's last name: ")
-        name3 = input("Enter the student's patronymic (if any): ")
-        form = input("Is the student on a scholarship? yes/no: ")
-        iin = getIIN()
-        group = input("Enter the student's group: ")
-        address = input("Enter the student's address: ")
-        if name1 != "":
-            lst.append([name1, name2, name3, form, iin, group, address])
-            break
-        else:
-            print("Please fill in the fields again.")
-            continue
 
-# function to edit student data
-def EditStudent(lst: list, index):
+def get_input(prompt: str, validation_func=None, error_msg="Invalid input, please try again."):
     while True:
-        name1 = input("Enter the student's first name: ")
-        name2 = input("Enter the student's last name: ")
-        name3 = input("Enter the student's patronymic (if any): ")
-        form = input("Is the student on a scholarship? yes/no: ")
-        iin = getIIN()
-        group = input("Enter the student's group: ")
-        address = input("Enter the student's address: ")
-        if name1 != "":
-            lst[index] = [name1, name2, name3, form, iin, group, address]
-            break
+        value = input(prompt)
+        if validation_func is None or validation_func(value):
+            return value
         else:
-            print("Please fill in the fields again.")
-            continue
+            print(error_msg)
 
-# function to remove a student from the list
-def RemoveStudent(lst: list, index):
+
+def is_non_empty_string(value: str):
+    return value.strip() != ""
+
+
+def is_yes_no(value: str):
+    return value.lower() in ["yes", "no"]
+
+
+def is_valid_iin(value: str):
+    return value.isdigit() and len(value) == 12
+
+
+def add_or_edit_student(lst: list, index=None):
+    name1 = get_input("Enter the student's first name: ", is_non_empty_string)
+    name2 = get_input("Enter the student's last name: ", is_non_empty_string)
+    name3 = get_input("Enter the student's patronymic (if any): ")
+    form = get_input("Is the student on a scholarship? yes/no: ", is_yes_no)
+    iin = get_input("Enter the student's IIN: ", is_valid_iin)
+    group = get_input("Enter the student's group: ", is_non_empty_string)
+    address = get_input("Enter the student's address: ", is_non_empty_string)
+
+    student_data = [name1, name2, name3, form, iin, group, address]
+    if index is None:
+        lst.append(student_data)
+    else:
+        lst[index] = student_data
+
+
+def remove_student(lst: list, index):
     lst.pop(index)
 
-# function to get a safe index
-def getINT() -> int:
+
+def get_int(prompt: str, max_value: int):
     while True:
         try:
-            index = int(input("Enter the student index: "))
-        except:
-            print("You entered a non-numeric value, please try again.")
-            continue
-        if index <= (len(Students) - 1):
-            return index
-        else:
-            print("There is no such index in the list.")
-            continue
+            value = int(input(prompt))
+            if 0 <= value < max_value:
+                return value
+            else:
+                print(f"Value must be between 0 and {max_value - 1}.")
+        except ValueError:
+            print("Invalid input, please enter a number.")
 
-# function to get a numeric IIN
-def getIIN() -> int:
-    while True:
-        try:
-            iin = int(input("Enter the student's IIN: "))
-            return iin
-        except:
-            print("You entered a non-IIN value, please try again.")
-            continue
 
-# function to add rows to the Table object
-def row_table(lst: list):
-    i = 0
-    for element in lst:
-        Table.add_row(
-            [i, Students[i][0], Students[i][1], Students[i][2], Students[i][3], Students[i][4], Students[i][5],
-             Students[i][6]])
-        i = i + 1
+def search_student(lst: list):
+    first_name = get_input("Enter the student's first name to search: ", is_non_empty_string)
+    results = [student for student in lst if student[0].lower() == first_name.lower()]
 
-# function to write the list to a CSV file
-def write_CSV(lst: list):
+    if results:
+        table = create_table(results)
+        print("Search Results:")
+        print(table)
+    else:
+        print("No students found with that first name.")
+
+
+def sort_students(lst: list, attribute_index: int):
+    lst.sort(key=lambda x: x[attribute_index])
+
+
+def create_table(lst: list):
+    table = PrettyTable()
+    table.field_names = ["INDEX", "FIRST NAME", "LAST NAME", "PATRONYMIC", "ON SCHOLARSHIP", "IIN", "GROUP", "ADDRESS"]
+    for i, student in enumerate(lst):
+        table.add_row([i] + student)
+    return table
+
+
+def write_csv(lst: list):
     with open('students.csv', 'w', newline='') as f:
         writer = csv.writer(f)
-        for row in lst:
-            writer.writerow(row)
+        writer.writerows(lst)
 
-loopFlag = True  # loop flag
-changeFlag = False  # list change flag
 
-# create a Table instance and assign column headers
-Table = PrettyTable()
-Table.field_names = ["INDEX", "FIRST NAME", "LAST NAME", "PATRONYMIC", "ON SCHOLARSHIP", "IIN", "GROUP", "ADDRESS"]
+loop_flag = True
+change_flag = False
+students = []
 
-Students = []
-
-# try to open the file with student data at the beginning of the program
 try:
     with open('students.csv', newline='') as f:
         reader = csv.reader(f)
-        for row in reader:
-            Students.append(row)
-        row_table(Students)
-        print(Table)
+        students = [row for row in reader]
+        print(create_table(students))
 except FileNotFoundError:
-    print("*********************************************")
-    print("DATABASE FILE OF STUDENTS NOT FOUND!")
-    print("*********************************************")
-    print(Table)
-    print("The list of students is empty!")
+    print("Database file of students not found! The list of students is empty!")
     print("When adding students to the list, the file will be created automatically.")
 
-# MAIN LOOP
-while loopFlag:
-    if len(Students) == 0:
+while loop_flag:
+    if not students:
         print("The list of students is empty!")
 
-    print("Select the action number")
-    print("add 1, edit 2, delete 3, clear all 4, exit the program 0")
-    userInput = input()
+    print("Select the action number:")
+    print("1. Add, 2. Edit, 3. Delete, 4. Clear All, 5. Search, 6. Sort, 0. Exit")
+    user_input = get_input("", lambda x: x in ["0", "1", "2", "3", "4", "5", "6"],
+                           "Invalid selection, please try again.")
 
-    if userInput == "1":
-        addStudent(Students)
-        changeFlag = True
+    if user_input == "1":
+        add_or_edit_student(students)
+        change_flag = True
 
-    if userInput == "2":
-        indexIn = getINT()
-        EditStudent(Students, indexIn)
-        changeFlag = True
+    if user_input == "2":
+        if students:
+            index = get_int("Enter the student index to edit: ", len(students))
+            add_or_edit_student(students, index)
+            change_flag = True
 
-    if userInput == "3":
-        indexIn = getINT()
-        RemoveStudent(Students, indexIn)
-        changeFlag = True
+    if user_input == "3":
+        if students:
+            index = get_int("Enter the student index to delete: ", len(students))
+            remove_student(students, index)
+            change_flag = True
 
-    if userInput == "4":
-        sure = input("Are you sure? yes/no (all data will be deleted!)")
+    if user_input == "4":
+        sure = get_input("Are you sure? yes/no: ", is_yes_no)
         if sure.lower() == "yes":
-            Students.clear()
-            changeFlag = True
+            students.clear()
+            change_flag = True
 
-    if userInput == "0":
-        loopFlag = False
+    if user_input == "5":
+        search_student(students)
 
-    if changeFlag:
-        Table.clear_rows()  # clear previously drawn table rows
-        row_table(Students)  # fill table rows for display from the student list
-        print(Table, "\n")  # display the table on the screen
-        write_CSV(Students)  # write data from the list to the CSV file
-        changeFlag = False  # all changes are recorded and there are no
+    if user_input == "6":
+        print("Sort by: 1. First Name, 2. Last Name, 3. IIN")
+        sort_choice = get_input("", lambda x: x in ["1", "2", "3"], "Invalid selection, please try again.")
+        sort_students(students, int(sort_choice) - 1)
+        change_flag = True
+
+    if user_input == "0":
+        loop_flag = False
+
+    if change_flag:
+        print(create_table(students))
+        write_csv(students)
+        change_flag = False
