@@ -1,4 +1,4 @@
-Student Management System
+# Student Management System
 Description
 The Student Management System is a Python-based application that allows users to manage student data, including adding, editing, and removing student records. The system also supports saving and loading student data from a CSV file. This project was developed to simplify the management of student information in an educational institution.
 
