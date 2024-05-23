@@ -1,0 +1,40 @@
+Student Management System
+Description
+The Student Management System is a Python-based application that allows users to manage student data, including adding, editing, and removing student records. The system also supports saving and loading student data from a CSV file. This project was developed to simplify the management of student information in an educational institution.
+
+Features
+Add a new student record
+Edit an existing student record
+Delete a student record
+Clear all student records
+Save student data to a CSV file
+Load student data from a CSV file
+Display student data in a formatted table
+Requirements
+Python 3.x
+prettytable library
+
+Code Structure
+main.py: The main script that runs the application.
+students.csv: The CSV file used to store student data.
+Functions
+addStudent(lst: list)
+Prompts the user to enter the details of a new student and adds the student to the list.
+
+EditStudent(lst: list, index)
+Prompts the user to enter the updated details of an existing student and updates the student record in the list.
+
+RemoveStudent(lst: list, index)
+Removes the student record at the specified index from the list.
+
+getINT() -> int
+Prompts the user to enter a valid index and returns it.
+
+getIIN() -> int
+Prompts the user to enter a valid IIN and returns it.
+
+row_table(lst: list)
+Adds rows to the PrettyTable object from the student list.
+
+write_CSV(lst: list)
+Writes the student list to the CSV file.
